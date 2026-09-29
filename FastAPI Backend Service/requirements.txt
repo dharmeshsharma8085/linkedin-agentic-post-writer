@@ -3,8 +3,6 @@ langchain
 langchain-openai
 langchain-tavily
 python-dotenv
-
-flask
+fastapi
+uvicorn
 pydantic
-requests
-gunicorn

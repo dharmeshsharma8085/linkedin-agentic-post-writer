@@ -8,15 +8,10 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 COPY requirements.txt .
-
 RUN pip install -r requirements.txt
 
-COPY project.py backend.py app.py ./
+COPY backend.py project.py ./
 
-RUN useradd --create-home --uid 1000 appuser && chown -R appuser /app
+EXPOSE 8000
 
-USER appuser
-
-EXPOSE 5000
-
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT app:app"]
+CMD ["sh", "-c", "uvicorn backend:api --host 0.0.0.0 --port $PORT"]
