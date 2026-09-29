@@ -1,0 +1,16 @@
+
+.dockerignore · DOCKERIGNORE
+.env
+.env.*
+.git
+.gitignore
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vscode/
+.idea/
+*.md
+Dockerfile
+docker-compose.yml
+ 

@@ -1,0 +1,38 @@
+
+Docker compose · YML
+services:
+  backend:
+    build: .
+    container_name: postforge-backend
+    # Needs OPENAI_API_KEY and TAVILY_API_KEY
+    env_file: .env
+    ports:
+      - "8000:8000"   # FastAPI + /docs (remove if you don't need it exposed)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+ 
+  frontend:
+    build: .
+    container_name: postforge-ui
+    # gthread workers keep the SSE stream open; long timeout because a run can take minutes
+    command: >
+      gunicorn app:app
+      --bind 0.0.0.0:5000
+      --worker-class gthread
+      --workers 1
+      --threads 8
+      --timeout 300
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "5000:5000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+ 

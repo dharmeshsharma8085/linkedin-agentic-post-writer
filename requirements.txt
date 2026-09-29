@@ -1,0 +1,10 @@
+langgraph
+langchain
+langchain-openai
+langchain-tavily
+python-dotenv
+
+flask
+pydantic
+requests
+gunicorn
