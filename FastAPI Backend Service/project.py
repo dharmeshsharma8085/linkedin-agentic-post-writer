@@ -159,32 +159,29 @@ Use 3-5 relevant hashtags at the end.
 # ============================================================
 
 def writer_node(state: State) -> dict:
-    """
-    Generate or improve a LinkedIn post based on the current topic
-    and reviewer feedback.
+    last_message = state["messages"][-1] if state.get("messages") else None
 
-    Uses the writer LLM and available search tools when necessary.
-    On subsequent attempts, the previous reviewer feedback is provided
-    so the model can improve the draft.
+    # If we are coming back from the search tool,
+    # continue the same conversation with the tool result.
+    if last_message is not None and getattr(last_message, "tool_call_id", None):
+        messages = [
+            ("system", WRITER_SYSTEM_PROMPT),
+            *state["messages"],
+        ]
 
-    Args:
-        state (State): Current workflow state.
+        response = writer_model.invoke(messages)
 
-    Returns:
-        dict: Updated messages and attempt count.
-    """
+        return {
+            "messages": [response]
+        }
 
+    # New writing/revision attempt
     attempt = state.get("attempt", 0) + 1
 
     topic = state["topic"]
-
-    previous_feedback = state.get(
-        "review_feedback",
-        ""
-    )
+    previous_feedback = state.get("review_feedback", "")
 
     if attempt == 1:
-
         user_message = f"""
 Write a LinkedIn post about:
 
@@ -193,9 +190,7 @@ Write a LinkedIn post about:
 Research the topic using the search tool if current
 information is genuinely necessary.
 """
-
     else:
-
         user_message = f"""
 Improve the LinkedIn post about:
 
@@ -213,25 +208,14 @@ Fix every meaningful issue mentioned by the reviewer.
 Do not repeat the same mistakes.
 """
 
-    messages = [
-        (
-            "system",
-            WRITER_SYSTEM_PROMPT
-        ),
-        (
-            "user",
-            user_message
-        )
-    ]
-
-    response = writer_model.invoke(messages)
+    response = writer_model.invoke([
+        ("system", WRITER_SYSTEM_PROMPT),
+        ("user", user_message),
+    ])
 
     return {
         "messages": [
-            (
-                "user",
-                user_message
-            ),
+            ("user", user_message),
             response
         ],
         "attempt": attempt
